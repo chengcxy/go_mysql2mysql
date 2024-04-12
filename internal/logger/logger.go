@@ -2,7 +2,6 @@ package logger
 
 import (
 	"fmt"
-	"git"
 	"github.com/fatih/color"
 	"github.com/lestrrat-go/file-rotatelogs"
 	"go.uber.org/zap"

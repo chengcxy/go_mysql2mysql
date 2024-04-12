@@ -3,7 +3,7 @@ package sqlclient
 import (
 	"database/sql"
 	"errors"
-	"github.com/chengcxy/go_mysql2mysql/configor"
+	configor "github.com/chengcxy/go_mysql2mysql/config"
 )
 
 type TableMeta struct {

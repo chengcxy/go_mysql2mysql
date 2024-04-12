@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/chengcxy/go_mysql2mysql/configor"
+	configor "github.com/chengcxy/go_mysql2mysql/config"
 	"github.com/chengcxy/go_mysql2mysql/internal/logger"
 	_ "github.com/go-sql-driver/mysql"
 	"strconv"

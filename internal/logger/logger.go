@@ -2,13 +2,13 @@ package logger
 
 import (
 	"fmt"
-	"os"
-	"time"
+	"git"
 	"github.com/fatih/color"
 	"github.com/lestrrat-go/file-rotatelogs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"git"
+	"os"
+	"time"
 )
 
 type LogConfig struct {
@@ -23,10 +23,8 @@ var fileZapLog *zap.SugaredLogger
 
 var cfg LogConfig
 
-func GetextendConfig()
-
-func InitLogger(extendConfig LogConfig) {
-	cfg = extendConfig
+func InitLogger(logConfig LogConfig) {
+	cfg = logConfig
 	initConsoleZapLog()
 	if cfg.NeedFileWrite {
 		initFileZapLogger(cfg.LogPath, cfg.FilePrefix)

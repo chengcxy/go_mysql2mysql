@@ -6,7 +6,6 @@ import (
 	configor "github.com/chengcxy/go_mysql2mysql/config"
 	"github.com/chengcxy/go_mysql2mysql/internal/logger"
 	"github.com/chengcxy/go_mysql2mysql/internal/syncer"
-	"github.com/chengcxy/go_mysql2mysql/internal/utils"
 )
 
 var ConfigPath string
@@ -20,7 +19,7 @@ func init() {
 	flag.StringVar(&Env, "e", "dev", "运行的环境-json文件前缀 dev/test/prod")
 	flag.StringVar(&Condition, "condition", " 1=1 ", "条件")
 	flag.Parse()
-	config, err = configor.NewConfig(ConfigPath, Env, UsedEnv)
+	config, err = configor.NewConfig(ConfigPath, Env, true)
 	if err != nil {
 		fmt.Println("初始化解析配置文件错误...", err)
 		panic(err)
@@ -31,7 +30,7 @@ func init() {
 		panic("配置文件log配置不存在...")
 	}
 	logConf := logJsonConf.(map[string]interface{})
-	logConfig := logger.Config{
+	logConfig := logger.LogConfig{
 		Dev:           logConf["dev"].(bool),
 		NeedFileWrite: logConf["need_file_write"].(bool),
 		LogPath:       logConf["log_path"].(string),

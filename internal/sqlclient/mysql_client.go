@@ -255,63 +255,14 @@ func (m *MysqlClient) Execute(stmt string, args ...interface{}) (int64, error) {
 	return defaultNum, errors.New(fmt.Sprintf("retry 4 times all error:%+v", err))
 }
 
-func (m *MysqlClient) Write(write_mode, to_db, to_table string, datas []map[string]string, columns []string, writeBatch int, isCreateTable bool) (int64, bool, error) {
+func (m *MysqlClient) Write(write_mode, to_db, to_table string, datas []map[string]string, columns []string, writeBatch int) (int64, error) {
 	var num int64
 	fields := make([]string, len(columns))
 	for index, col := range columns {
 		fields[index] = fmt.Sprintf("`%s`", col)
 	}
-	if len(columns) > 0 && isCreateTable {
-		stmts := make([]string, len(columns))
-		schema := ""
-		idExists := false
-		zCreateTimeExists := false
-		zUpdateTimeExists := false
-		for _, col := range columns {
-			if col == "id" {
-				idExists = true
-			}
-			if col == "z_create_time" {
-				zCreateTimeExists = true
-			}
-			if col == "z_update_time" {
-				zUpdateTimeExists = true
-			}
-		}
-		if idExists {
-			schema = fmt.Sprintf("create table if not exists %s.%s(add_id int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',", to_db, to_table)
-		} else {
-			schema = fmt.Sprintf("create table if not exists %s.%s(id int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',", to_db, to_table)
-		}
-		for index, col := range columns {
-			stmts[index] = fmt.Sprintf(" %s varchar(255)", col)
-		}
-		schema += strings.Join(stmts, ",")
-		temp := make([]string, 0)
-		if !zCreateTimeExists {
-			temp = append(temp, "z_create_time datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'")
-		} else {
-			temp = append(temp, "add_z_create_time datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'")
-		}
-		if !zUpdateTimeExists {
-			temp = append(temp, "z_update_time datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'")
-		} else {
-			temp = append(temp, "add_z_update_time datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'")
-		}
-		if !idExists {
-			temp = append(temp, "PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;")
-		} else {
-			temp = append(temp, "PRIMARY KEY (add_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;")
-		}
-		schema += fmt.Sprintf(",%s", strings.Join(temp, ","))
-		_, err := m.Execute(schema)
-		if err != nil {
-			return 0, isCreateTable, err
-		}
-		isCreateTable = false
-	}
 	if len(datas) == 0 {
-		return 0, isCreateTable, nil
+		return 0, nil
 	} else {
 		fieldStr := strings.Join(fields, ",")
 		insertSql := fmt.Sprintf("%s into %s.%s(%s)values", write_mode, to_db, to_table, fieldStr)
@@ -346,7 +297,7 @@ func (m *MysqlClient) Write(write_mode, to_db, to_table string, datas []map[stri
 				batchCommitSql += strings.Join(qs, ",")
 				batchCommitNum, err := m.Execute(batchCommitSql, values...)
 				if err != nil {
-					return 0, isCreateTable, err
+					return 0, err
 				}
 				num += batchCommitNum
 				values = nil
@@ -375,12 +326,12 @@ func (m *MysqlClient) Write(write_mode, to_db, to_table string, datas []map[stri
 			batchCommitSql += strings.Join(qs, ",")
 			batchCommitNum, err := m.Execute(batchCommitSql, values...)
 			if err != nil {
-				return 0, isCreateTable, err
+				return 0, err
 			}
 			num += batchCommitNum
 			values = nil
 			tempBatchs = nil
 		}
-		return num, isCreateTable, nil
+		return num, nil
 	}
 }

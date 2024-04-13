@@ -30,7 +30,7 @@ type SqlClient interface {
 	GetMaxId(db_name, table_name, pk string) (int, error)
 	Query(query string, args ...interface{}) ([]map[string]string, []string, error)
 	Execute(stmt string, args ...interface{}) (int64, error)
-	Write(write_mode, to_db, to_table string, datas []map[string]string, columns []string, writeBatch int) (int64, bool, error)
+	Write(write_mode, to_db, to_table string, datas []map[string]string, columns []string, writeBatch int) (int64, error)
 }
 
 func GetSqlClient(clientType string, config *configor.Config, key string) (SqlClient, error) {

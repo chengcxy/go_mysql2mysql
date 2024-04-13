@@ -1,6 +1,8 @@
 package syncer
 
 import (
+	"encoding/json"
+	"fmt"
 	configor "github.com/chengcxy/go_mysql2mysql/config"
 	"github.com/chengcxy/go_mysql2mysql/internal/logger"
 	"github.com/chengcxy/go_mysql2mysql/internal/sqlclient"
@@ -34,7 +36,7 @@ func NewSyncer(config *configor.Config, condition string) (*Syncer, error) {
 	return s, nil
 }
 
-func (s *Syncer) getTaskManagerClient() (sqlclient.SqlClient, err) {
+func (s *Syncer) getTaskManagerClient() (sqlclient.SqlClient, error) {
 	key := "mysql.task_manager"
 	taskManagerClient, err := sqlclient.GetSqlClient("mysql", s.config, key)
 	return taskManagerClient, err
@@ -43,7 +45,7 @@ func (s *Syncer) getTaskManagerClient() (sqlclient.SqlClient, err) {
 //获取待执行的任务
 func (s *Syncer) getWaitedTasks() ([]*TaskInfo, error) {
 	taskInfos := make([]*TaskInfo, 0)
-	sql := fmt.Sprinf(baseQueryWaitedTasks, s.condition)
+	sql := fmt.Sprintf(baseQueryWaitedTasks, s.condition)
 	logger.Infof("s.getWaitedTasks.sql is %s", sql)
 	tasks, _, err := s.taskManagerClient.Query(sql)
 	if err != nil {
@@ -52,13 +54,13 @@ func (s *Syncer) getWaitedTasks() ([]*TaskInfo, error) {
 	for _, meta := range tasks {
 		metaBytes, err := json.Marshal(meta)
 		if err != nil {
-			log.Errorf("taskmeta:%v get,but trans bytes error:%v", meta, err)
+			logger.Errorf("taskmeta:%v get,but trans bytes error:%v", meta, err)
 			return nil, err
 		}
 		var task TaskInfo
 		err = json.Unmarshal(metaBytes, &task)
 		if err != nil {
-			log.Errorf("taskmeta Unmarshal for TaskInfo error ", err)
+			logger.Errorf("taskmeta Unmarshal for TaskInfo error ", err)
 			return nil, err
 		}
 		taskInfos = append(taskInfos, &task)
@@ -68,20 +70,17 @@ func (s *Syncer) getWaitedTasks() ([]*TaskInfo, error) {
 
 }
 
-func (s *Syncer) ExecuteTask(taskInfo *TaskInfo) (int, int, error) {
-	e := NewExecuter(taskInfo, s.config, s.taskManagerClient)
-	defer func() {
-		e.Close()
-	}()
-}
-
-func (s *Syncer) Run() {
+func (s *Syncer) Run() error {
 	if len(s.taskInfos) > 0 {
 		taskInfo := s.taskInfos[0]
-		e := NewExecuter(taskInfo, s.config, s.taskManagerClient)
+		e, err := NewExecuter(taskInfo, s.config, s.taskManagerClient)
 		defer func() {
 			e.Close()
 		}()
-
+		if err != nil {
+			return err
+		}
+		return nil
 	}
+	return nil
 }

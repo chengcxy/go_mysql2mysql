@@ -1,4 +1,3 @@
-
 package configor
 
 import (
@@ -11,20 +10,16 @@ cd $project_path/configor
 go test
 `
 
-func TestNewConfig(t *testing.T){
+func TestNewConfig(t *testing.T) {
 	ConfigPath := "/data/go/src/github.com/chengcxy/config/"
 	Env := "test"
 	UsedEnv := true
-	config := NewConfig(ConfigPath,Env,UsedEnv)
+	config := NewConfig(ConfigPath, Env, UsedEnv)
 	fmt.Println(config.Conf)
 	fmt.Println(config.Get("taskmeta.conn"))
 	fmt.Println(config.Get("taskmeta.query_task"))
-	c,_ := config.Get("job_meta_conf")
+	c, _ := config.Get("job_meta_conf")
 	fmt.Println(c)
-	c,_ = config.Get("roboter")
+	c, _ = config.Get("roboter")
 	fmt.Println(c)
 }
-
-
-
-

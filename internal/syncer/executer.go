@@ -1,5 +1,12 @@
 package syncer
 
+import (
+	"fmt"
+	configor "github.com/chengcxy/go_mysql2mysql/config"
+	"github.com/chengcxy/go_mysql2mysql/internal/logger"
+	"github.com/chengcxy/go_mysql2mysql/internal/sqlclient"
+)
+
 type Executer struct {
 	taskInfo          *TaskInfo
 	config            *configor.Config
@@ -8,7 +15,7 @@ type Executer struct {
 	writer            sqlclient.SqlClient
 }
 
-func NewExecuter(taskInfo *TaskInfo, config *configor.Config, taskManagerClient sqlclient.SqlClient) *Executer {
+func NewExecuter(taskInfo *TaskInfo, config *configor.Config, taskManagerClient sqlclient.SqlClient) (*Executer, error) {
 	e := &Executer{
 		taskInfo:          taskInfo,
 		config:            config,
@@ -28,18 +35,18 @@ func NewExecuter(taskInfo *TaskInfo, config *configor.Config, taskManagerClient 
 	}
 	e.writer = writer
 	logger.Infof("e.getWriter success")
-	return e
+	return e, nil
 }
 
-func (e *Executer) getReader() (sqlclient.SqlClient, err) {
+func (e *Executer) getReader() (sqlclient.SqlClient, error) {
 	readerKey := fmt.Sprintf("from.%s.%s_%s", e.taskInfo.FromDbType, e.taskInfo.FromApp, e.taskInfo.FromDb)
 	reader, err := sqlclient.GetSqlClient(e.taskInfo.FromDbType, e.config, readerKey)
 	return reader, err
 }
 
-func (e *Executer) getWriter() (sqlclient.SqlClient, err) {
+func (e *Executer) getWriter() (sqlclient.SqlClient, error) {
 	writerKey := fmt.Sprintf("to.%s.%s_%s", e.taskInfo.ToDbType, e.taskInfo.ToApp, e.taskInfo.ToDb)
-	writer, err := sqlclient.GetSqlClient(e.taskInfo.ToDbType, e.config, e.writerKey)
+	writer, err := sqlclient.GetSqlClient(e.taskInfo.ToDbType, e.config, writerKey)
 	return writer, err
 }
 

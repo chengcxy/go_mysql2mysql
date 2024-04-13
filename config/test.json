@@ -1,15 +1,55 @@
 {
   "mysql": {
-    "task_manager": {
-      "host": "TEST_ZPE_MYSQL_HOST",
-      "user": "TEST_ZPE_MYSQL_USER",
-      "password": "TEST_ZPE_MYSQL_PASSWORD",
-      "db": "z_etl",
-      "port": 3306,
-      "charset": "utf8",
-      "MaxOpenConns":1,
-      "MaxIdleConns":1
-    },
+      "task_manager": {
+        "host": "TEST_ZPE_MYSQL_HOST",
+        "user": "TEST_ZPE_MYSQL_USER",
+        "password": "TEST_ZPE_MYSQL_PASSWORD",
+        "db": "z_etl",
+        "port": 3306,
+        "charset": "utf8",
+        "MaxOpenConns":1,
+        "MaxIdleConns":1
+      }
+  },
+  "from":{
+    "mysql":{
+        "test_dw_z_pe":{
+          "host": "TEST_ZPE_MYSQL_HOST",
+          "user": "TEST_ZPE_MYSQL_USER",
+          "password": "TEST_ZPE_MYSQL_PASSWORD",
+          "db": "z_pe",
+          "port": 3306,
+          "charset": "utf8"
+        },
+        "test_dw_z_etl":{
+          "host": "TEST_ZPE_MYSQL_HOST",
+          "user": "TEST_ZPE_MYSQL_USER",
+          "password": "TEST_ZPE_MYSQL_PASSWORD",
+          "db": "z_etl",
+          "port": 3306,
+          "charset": "utf8"
+        }
+    }
+  },
+  "to":{
+    "mysql":{
+        "test_dw_z_pe":{
+          "host": "TEST_ZPE_MYSQL_HOST",
+          "user": "TEST_ZPE_MYSQL_USER",
+          "password": "TEST_ZPE_MYSQL_PASSWORD",
+          "db": "z_pe",
+          "port": 3306,
+          "charset": "utf8"
+        },
+        "test_dw_z_etl":{
+          "host": "TEST_ZPE_MYSQL_HOST",
+          "user": "TEST_ZPE_MYSQL_USER",
+          "password": "TEST_ZPE_MYSQL_PASSWORD",
+          "db": "z_etl",
+          "port": 3306,
+          "charset": "utf8"
+        }
+    }
   },
   "trino": {
     "z_pe": {
@@ -19,7 +59,7 @@
   "log": {
     "dev": true,
     "log_path": "../logs/",
-    "need_file_write": true,
+    "need_file_write": true
   },
   "roboter": {
     "token": "TEST_DINGDING_TOKEN",

@@ -1,27 +1,48 @@
 package syncer
 
+
 type TaskInfo struct {
 	Id           string `json:"id"`            // 统计任务id
 	FromApp      string `json:"from_app"`      // 读取的业务系统
 	FromDbType   string `json:"from_db_type"`  // 读取的数据源类型mysql/oracle等
 	FromDb       string `json:"from_db"`       // 读取的数据库
-	StaticRule   string `json:"static_rule"`   // 统计规则
-	Params       string `json:"params"`        // 增量规则
+	FromTable    string `json:"from_table"`    // 读取表
 	ToApp        string `json:"to_app"`        // 写入的业务系统
 	ToDbType     string `json:"to_db_type"`    // 写入数据源类型
 	ToDb         string `json:"to_db"`         // 写入数据库
 	ToTable      string `json:"to_table"`      // 写入数据表
-	OnlineStatus string `json:"online_status"` // 统计状态0统计1不统计
+	Params       string `json:"params"`        // 规则
+	OnlineStatus string `json:"online_status"` // 在线状态0统计1不统计
 	WriteMode    string `json:"write_mode"`    // 写入模式replace/insert/update/delete/append/overwrite
 	TaskDesc     string `json:"task_desc"`     // 统计描述
-	IsTruncate   string `json:"is_truncate"`   // 是否truncate表(0-truncate)
-	Owner        string `json:"owner"`         // 取数人
+	Owner        string `json:"owner"`         // 开发所属人
 	TaskStatus   string `json:"task_status"`   // 任务状态
 }
 
-//task_def_sync_manager
+type TaskParams struct{
+	start int64
+	end int64
+}
+
+//
 var baseQueryWaitedTasks = `
 select *
-from z_etl.task_def_sql_automation
+from task_def_sync_manager
 where online_status=1 and %s
 `
+
+var baseQueryMinMax = `
+select min(%s)-1 as min_id,max(%s) as max_id
+from %s.%s
+`
+
+
+//任务状态
+var (
+	PARSEPARAMSERROR = 1
+	GETMINMAXERROR = 2
+	RUNNING = 3
+	FAILED = 4
+	SUCCESS = 5
+
+)

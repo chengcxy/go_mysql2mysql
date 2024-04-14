@@ -6,6 +6,7 @@ import (
 	configor "github.com/chengcxy/go_mysql2mysql/config"
 	"github.com/chengcxy/go_mysql2mysql/internal/logger"
 	"github.com/chengcxy/go_mysql2mysql/internal/syncer"
+	
 )
 
 var ConfigPath string
@@ -13,11 +14,14 @@ var Env string
 var config *configor.Config
 var Condition string
 var err error
+var Mode string
+
 
 func init() {
 	flag.StringVar(&ConfigPath, "c", "../config/", "配置文件目录")
 	flag.StringVar(&Env, "e", "dev", "运行的环境-json文件前缀 dev/test/prod")
 	flag.StringVar(&Condition, "condition", " 1=1 ", "条件")
+	flag.StringVar(&Mode, "mode", "init", "模式全量还是增量")
 	flag.Parse()
 	config, err = configor.NewConfig(ConfigPath, Env, true)
 	if err != nil {
@@ -41,11 +45,12 @@ func init() {
 }
 
 func main() {
-	s, err := syncer.NewSyncer(config, Condition)
+	s, err := syncer.NewSyncer(config, Condition,Mode)
 	if err != nil {
 		logger.Errorf("syncer.NewSyncer 初始化失败 %s", err)
 		panic(err)
 	}
 	s.Run()
+	
 
 }

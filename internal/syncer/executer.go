@@ -24,6 +24,7 @@ type Executer struct {
 	readBatch         int      				//读取表batch
 	writeBatch        int      				//写入表批次
 	taskStatus		  int					//任务状态
+	columnMapping     map[string]string
 }
 
 
@@ -60,6 +61,14 @@ func NewExecuter(taskInfo *TaskInfo,syncer *Syncer) (*Executer, error) {
 	}
 	e.reader = reader
 	logger.Infof("e.getReader success")
+	
+	columnMapping,err := e.getReaderColumns()
+	if err != nil {
+		logger.Errorf("e.getReaderColumns failed:%v", err)
+		return nil, err
+	}
+	e.columnMapping = columnMapping
+
 	writer, err := e.getWriter()
 	if err != nil {
 		logger.Errorf("e.getWriter failed:%v", err)
@@ -135,6 +144,18 @@ func (e *Executer)getMinMaxInit()(int64,int64,error){
 	return int64(start),int64(end),nil
 }
 
+func(e *Executer)getReaderColumns()(map[string]string,error){
+	tm,err := e.reader.GetTableMeta(e.taskInfo.FromApp,e.taskInfo.FromDb,e.taskInfo.FromTable)
+	if err != nil{
+		return nil,err
+	}
+	columnMapping := make(map[string]string)
+	for _,key := range tm.Fields{
+		columnMapping[key] = key
+	}
+	return columnMapping,nil
+}
+
 func (e *Executer)getMinMaxIncrease()(int64,int64,error){
 	minId,maxId,err := e.getMinMaxInit()
 	if err != nil{
@@ -167,7 +188,7 @@ func (e *Executer)getMinMaxIncrease()(int64,int64,error){
 }
 
 func (e *Executer)produceTaskParams(minId,maxId int64)(chan *TaskParams){
-	tasksChan := make(chan *TaskParams,0)
+	tasksChan := make(chan *TaskParams)
 	go func(){
 		defer func(){
 			close(tasksChan)
@@ -190,12 +211,18 @@ func (e *Executer)produceTaskParams(minId,maxId int64)(chan *TaskParams){
 }
 
 func(e *Executer)executeInit(wid int,tp *TaskParams)*TaskResult{
+	sql := fmt.Sprintf(baseQuerySrcInit,e.taskInfo.FromDb,e.taskInfo.FromTable,e.srcPk,tp.start,e.srcPk,tp.end)
+	logger.Infof("taskName:%s,wid:%d queryInitData sql:%s",e.taskName,wid,sql)
+	datas,columns,err := e.reader.Query(sql)
+	//如果需要列转换 对datas要遍历处理一次
+	insertNum,err := e.writer.Write(e.syncer.mode,e.taskInfo.ToDb,e.taskInfo.ToTable,datas,columns,e.writeBatch)
 	r := &TaskResult{
 		taskName:e.taskName,
 		wid:wid,
 		start:tp.start,
 		end:tp.end,
-		err:nil,
+		insertNum:insertNum,
+		err:err,
 	}
 	logger.Infof("taskName:%s,wid:%d executeInit((%d,%d])",e.taskName,wid,tp.start,tp.end)
 	return r

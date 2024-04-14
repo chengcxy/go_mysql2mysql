@@ -13,9 +13,6 @@ type TableMeta struct {
 	Pk            string   `json:"pk"`
 	Fields        []string `json:"fields"`
 	UniqueIndexs  []string `json:"unique_indexs"`
-	MinId         int      `json:"min_id"`
-	MaxId         int      `json:"max_id"`
-	Batch         int      `json:"batch"`
 	HasPrimaryKey bool     `json:"has_primary_key"`
 	TotalCount    int      `json:"total_count"`
 }

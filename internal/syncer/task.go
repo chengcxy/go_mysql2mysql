@@ -36,6 +36,23 @@ select min(%s)-1 as min_id,max(%s) as max_id
 from %s.%s
 `
 
+var baseQuerySrcInit = `
+select *
+from %s.%s
+where %s>%d and %s<=%d
+`
+
+var baseQuerySrcIncrease = `
+select %s,%s
+from %s.%s
+where %s>%d and %s<=%d
+`
+
+var baseQueryDestIncrease = `
+select %s,%s
+from %s.%s
+where %s>$start and %s<=$end
+`
 
 //任务状态
 var (

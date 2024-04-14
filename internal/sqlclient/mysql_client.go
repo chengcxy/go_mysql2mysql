@@ -44,14 +44,6 @@ func (m *MysqlClient) GetTableMeta(own_app, db_name, table_name string) (*TableM
 	if !hasPk {
 		return &TableMeta{}, errors.New("table no pk")
 	}
-	minId, err := m.GetMinId(db_name, table_name, pk)
-	if err != nil {
-		return &TableMeta{}, err
-	}
-	maxId, err := m.GetMaxId(db_name, table_name, pk)
-	if err != nil {
-		return &TableMeta{}, err
-	}
 	unique_indexs, err := m.GetUniqueIndexs(db_name, table_name)
 	if err != nil {
 		return &TableMeta{}, err
@@ -63,8 +55,6 @@ func (m *MysqlClient) GetTableMeta(own_app, db_name, table_name string) (*TableM
 		Pk:            pk,
 		Fields:        fields,
 		UniqueIndexs:  unique_indexs,
-		MinId:         minId,
-		MaxId:         maxId,
 		HasPrimaryKey: hasPk,
 	}
 	return tm, nil

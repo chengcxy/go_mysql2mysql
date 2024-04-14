@@ -215,7 +215,7 @@ func(e *Executer)executeInit(wid int,tp *TaskParams)*TaskResult{
 	logger.Infof("taskName:%s,wid:%d queryInitData sql:%s",e.taskName,wid,sql)
 	datas,columns,err := e.reader.Query(sql)
 	//如果需要列转换 对datas要遍历处理一次
-	insertNum,err := e.writer.Write(e.syncer.mode,e.taskInfo.ToDb,e.taskInfo.ToTable,datas,columns,e.writeBatch)
+	insertNum,err := e.writer.Write("insert",e.taskInfo.ToDb,e.taskInfo.ToTable,datas,columns,e.writeBatch)
 	r := &TaskResult{
 		taskName:e.taskName,
 		wid:wid,
@@ -313,14 +313,24 @@ func(e *Executer)Run()*Result{
 	}(resultsChan,dones)
 	result := &Result{
 		taskName:e.taskName,
+		insertNum:	int64(0),
+		updateNum:int64(0),
+		deleteNum:int64(0),
 	}
 	for r := range resultsChan{
 		if r.err != nil{
 			result.err = err
 			result.taskStatus = FAILED
+			logger.Errorf("taskName:%s,error:%v",e.taskName,r.err)
 			return result
+		}else{
+			result.insertNum += r.insertNum
+			result.updateNum += r.updateNum
+			result.deleteNum += r.deleteNum
+			logger.Infof("taskName:%s,wid:%d,start-end(%d,%d],insertNum:%d,updateNum:%d,deleteNum:%d",e.taskName,r.wid,r.start,r.end,r.insertNum,r.updateNum,r.deleteNum)
 		}
 	}
+	logger.Infof("taskName:%s finished,insertNum:%d,updateNum:%d,deleteNum:%d",e.taskName,result.insertNum,result.updateNum,result.deleteNum)
 	result.err = nil
 	result.taskStatus = SUCCESS
 	return result

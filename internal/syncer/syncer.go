@@ -6,6 +6,7 @@ import (
 	configor "github.com/chengcxy/go_mysql2mysql/config"
 	"github.com/chengcxy/go_mysql2mysql/internal/logger"
 	"github.com/chengcxy/go_mysql2mysql/internal/sqlclient"
+	"github.com/chengcxy/go_mysql2mysql/internal/roboter"
 )
 
 type Syncer struct {
@@ -17,6 +18,7 @@ type Syncer struct {
 	reader            sqlclient.SqlClient
 	writer            sqlclient.SqlClient
 	concurrency       int
+	robot             roboter.Roboter
 }
 
 func NewSyncer(config *configor.Config, condition, mode string, concurrency int) (*Syncer, error) {
@@ -37,6 +39,7 @@ func NewSyncer(config *configor.Config, condition, mode string, concurrency int)
 		return nil, err
 	}
 	s.taskInfos = taskInfos
+	s.robot = roboter.GetRoboter(config)
 	return s, nil
 }
 
@@ -124,5 +127,6 @@ func (s *Syncer) Run() error {
 		}
 		return nil
 	}
+	s.robot.SendMsg("go_mysql2mysql task finished ")
 	return nil
 }

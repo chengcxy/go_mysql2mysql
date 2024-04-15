@@ -575,8 +575,10 @@ func (e *Executor) Run() *Result {
 			logger.Infof("taskName:%s,wid:%d,start-end(%d,%d],insertNum:%d,updateNum:%d,deleteNum:%d,affectNum:%d", e.taskName, r.wid, r.start, r.end, r.insertNum, r.updateNum, r.deleteNum, r.affectNum)
 		}
 	}
-	logger.Infof("taskName:%s finished,insertNum:%d,updateNum:%d,deleteNum:%d,affectNum:%d", e.taskName, result.insertNum, result.updateNum, result.deleteNum, result.affectNum)
+	msg := fmt.Sprintf("taskName:%s finished,insertNum:%d,updateNum:%d,deleteNum:%d,affectNum:%d", e.taskName, result.insertNum, result.updateNum, result.deleteNum, result.affectNum)
+	logger.Infof("%s",msg)
 	result.err = nil
 	result.taskStatus = SUCCESS
+	e.syncer.robot.SendMsg(msg)
 	return result
 }

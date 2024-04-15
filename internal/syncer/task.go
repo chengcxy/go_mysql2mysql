@@ -1,6 +1,5 @@
 package syncer
 
-
 type TaskInfo struct {
 	Id           string `json:"id"`            // 统计任务id
 	FromApp      string `json:"from_app"`      // 读取的业务系统
@@ -19,9 +18,9 @@ type TaskInfo struct {
 	TaskStatus   string `json:"task_status"`   // 任务状态
 }
 
-type TaskParams struct{
+type TaskParams struct {
 	start int64
-	end int64
+	end   int64
 }
 
 //
@@ -42,24 +41,28 @@ from %s.%s
 where %s>%d and %s<=%d
 `
 
-var baseQuerySrcIncrease = `
-select %s,%s
+var baseQueryIncrease = `
+select %s as id,%s as updated
 from %s.%s
 where %s>%d and %s<=%d
 `
 
-var baseQueryDestIncrease = `
-select %s,%s
+var baseDeleteDestSql = `
+delete from %s.%s
+where %s in ($where)
+`
+
+var baseQuerySrcByPkSql = `
+select *
 from %s.%s
-where %s>$start and %s<=$end
+where %s in ($where)
 `
 
 //任务状态
 var (
 	PARSEPARAMSERROR = 1
-	GETMINMAXERROR = 2
-	RUNNING = 3
-	FAILED = 4
-	SUCCESS = 5
-
+	GETMINMAXERROR   = 2
+	RUNNING          = 3
+	FAILED           = 4
+	SUCCESS          = 5
 )

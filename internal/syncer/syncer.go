@@ -10,21 +10,21 @@ import (
 
 type Syncer struct {
 	condition         string
-	mode 			  string
+	mode              string
 	taskInfos         []*TaskInfo
 	config            *configor.Config
 	taskManagerClient sqlclient.SqlClient
 	reader            sqlclient.SqlClient
 	writer            sqlclient.SqlClient
-	stopChan 			chan error
+	stopChan          chan error
 }
 
-func NewSyncer(config *configor.Config, condition,mode string) (*Syncer, error) {
+func NewSyncer(config *configor.Config, condition, mode string) (*Syncer, error) {
 	s := &Syncer{
 		config:    config,
 		condition: condition,
-		mode:mode,
-		stopChan:make(chan error),
+		mode:      mode,
+		stopChan:  make(chan error),
 	}
 	taskManagerClient, err := s.getTaskManagerClient()
 	if err != nil {
@@ -77,7 +77,7 @@ func (s *Syncer) getWaitedTasks() ([]*TaskInfo, error) {
 func (s *Syncer) Run() error {
 	if len(s.taskInfos) > 0 {
 		taskInfo := s.taskInfos[0]
-		e, err := NewExecuter(taskInfo,s)
+		e, err := NewExecutor(taskInfo, s)
 		defer func() {
 			e.Close()
 		}()

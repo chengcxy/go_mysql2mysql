@@ -499,6 +499,9 @@ func (e *Executor) workerIncrease(wid int, tasksChan chan *TaskParams, resultsCh
 }
 
 func (e *Executor) Run() *Result {
+	defer func(){
+		e.Close()
+	}()
 	//parseParmas valid json
 	var err error
 	err = e.parseParams()

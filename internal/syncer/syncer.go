@@ -16,15 +16,15 @@ type Syncer struct {
 	taskManagerClient sqlclient.SqlClient
 	reader            sqlclient.SqlClient
 	writer            sqlclient.SqlClient
-	stopChan          chan error
+	concurrency       int
 }
 
-func NewSyncer(config *configor.Config, condition, mode string) (*Syncer, error) {
+func NewSyncer(config *configor.Config, condition, mode string,concurrency int) (*Syncer, error) {
 	s := &Syncer{
 		config:    config,
 		condition: condition,
 		mode:      mode,
-		stopChan:  make(chan error),
+		concurrency: concurrency,
 	}
 	taskManagerClient, err := s.getTaskManagerClient()
 	if err != nil {
@@ -74,18 +74,57 @@ func (s *Syncer) getWaitedTasks() ([]*TaskInfo, error) {
 
 }
 
+
+func (s *Syncer) worker(wid int,taskChan chan *TaskInfo,results chan *Result,dones chan int) {
+	defer func(){
+		dones <- wid
+	}()
+	for ti := range taskChan{
+		e, _ := NewExecutor(ti, s)
+		r := e.Run()
+		results <- r
+	}
+
+}
+
+
+func (s *Syncer)produceTasks()(chan *TaskInfo){
+	taskChan := make(chan *TaskInfo)
+	go func(){
+		defer func(){
+			close(taskChan)
+		}()
+		for _,taskInfo := range s.taskInfos{
+			logger.Infof("taskInfo: %+v send to taskChan",taskInfo)
+			taskChan <- taskInfo
+		}
+	}()
+	return taskChan
+
+}
+
+
 func (s *Syncer) Run() error {
 	if len(s.taskInfos) > 0 {
-		taskInfo := s.taskInfos[0]
-		e, err := NewExecutor(taskInfo, s)
-		defer func() {
-			e.Close()
-		}()
-		if err != nil {
-			return err
+		logger.Infof("sync waited %d tasks",len(s.taskInfos))
+		taskChan := s.produceTasks()
+		results := make(chan *Result)
+		dones := make(chan int,s.concurrency)
+		for i:=0;i<s.concurrency;i++{
+			go s.worker(i,taskChan,results,dones)
 		}
-
-		e.Run()
+		go func(results chan *Result,dones chan int){
+			for i:=0;i<s.concurrency;i++{
+				<- dones
+			}
+			close(results)
+		}(results,dones)
+		for r := range results{
+			if r.err != nil{
+				return r.err
+			}
+			logger.Infof("results is %+v",r)
+		}
 		return nil
 	}
 	return nil

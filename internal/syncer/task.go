@@ -57,6 +57,18 @@ from %s.%s
 where %s in ($where)
 `
 
+var baseQueryNextId = `
+select a.%s as end
+from (
+	select %s
+	from %s.%s
+	where %s > %d
+	limit %d
+) as a
+order by a.%s desc
+limit 1
+`
+
 //任务状态
 var (
 	PARSEPARAMSERROR = 1

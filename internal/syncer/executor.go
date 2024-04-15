@@ -131,24 +131,29 @@ func (e *Executor) Close() {
 	e.writer.Close()
 }
 
-func (e *Executor) getMinMaxInit() (int64, int64, error) {
+func (e *Executor) getMinMaxInit() (int64, int64, error, bool) {
+	var srcEmpty bool
 	sql := fmt.Sprintf(baseQueryMinMax, e.srcPk, e.srcPk, e.taskInfo.FromDb, e.taskInfo.FromTable)
 	logger.Infof("e.getMinMaxInit is %s", sql)
-	datas, _, err := e.reader.Query(sql)
-	if err != nil {
-		return int64(0), int64(0), err
-	}
+	datas, _, _ := e.reader.Query(sql)
 	strMinId := datas[0]["min_id"]
+	if strMinId == "NULL" {
+		strMinId = "0"
+		srcEmpty = true
+	}
 	strMaxId := datas[0]["max_id"]
+	if strMaxId == "NULL" {
+		strMaxId = "0"
+	}
 	start, err := strconv.Atoi(strMinId)
 	if err != nil {
-		return int64(0), int64(0), err
+		return int64(0), int64(0), err, srcEmpty
 	}
 	end, err := strconv.Atoi(strMaxId)
 	if err != nil {
-		return int64(0), int64(0), err
+		return int64(0), int64(0), err, srcEmpty
 	}
-	return int64(start), int64(end), nil
+	return int64(start), int64(end), nil, srcEmpty
 }
 
 func (e *Executor) getReaderColumns() (map[string]string, error) {
@@ -163,26 +168,29 @@ func (e *Executor) getReaderColumns() (map[string]string, error) {
 	return columnMapping, nil
 }
 
-func (e *Executor) getMinMaxIncrease() (int64, int64, error) {
-	minId, maxId, err := e.getMinMaxInit()
+func (e *Executor) getMinMaxIncrease() (int64, int64, error, bool) {
+	minId, maxId, err, srcEmpty := e.getMinMaxInit()
 	if err != nil {
-		return int64(0), int64(0), err
+		return int64(0), int64(0), err, srcEmpty
 	}
 	sql := fmt.Sprintf(baseQueryMinMax, e.destPk, e.destPk, e.taskInfo.ToDb, e.taskInfo.ToTable)
-	logger.Infof("e.getMinMaxInit is %s", sql)
-	datas, _, err := e.reader.Query(sql)
-	if err != nil {
-		return int64(0), int64(0), err
-	}
+	logger.Infof("e.getMinMaxIncrease is %s", sql)
+	datas, _, _ := e.reader.Query(sql)
 	strMinId := datas[0]["min_id"]
-	strMaxId := datas[0]["max_id"]
+	if strMinId == "NULL" {
+		strMinId = "0"
+	}
 	start, err := strconv.Atoi(strMinId)
 	if err != nil {
-		return int64(0), int64(0), err
+		return int64(0), int64(0), err, srcEmpty
+	}
+	strMaxId := datas[0]["max_id"]
+	if strMaxId == "NULL" {
+		strMaxId = "0"
 	}
 	end, err := strconv.Atoi(strMaxId)
 	if err != nil {
-		return int64(0), int64(0), err
+		return int64(0), int64(0), err, srcEmpty
 	}
 
 	if int64(start) < minId {
@@ -191,17 +199,45 @@ func (e *Executor) getMinMaxIncrease() (int64, int64, error) {
 	if int64(end) > maxId {
 		maxId = int64(end)
 	}
-	return minId, maxId, nil
+	return minId, maxId, nil, srcEmpty
 }
 
-func (e *Executor) produceTaskParams(minId, maxId int64) chan *TaskParams {
+func (e *Executor) getNextPk(start int64, srcEmpty bool) (int64, error) {
+	var queryNextSql string
+	var datas []map[string]string
+	if srcEmpty {
+		queryNextSql = fmt.Sprintf(baseQueryNextId, e.srcPk, e.srcPk, e.taskInfo.FromDb, e.taskInfo.FromTable, e.srcPk, start, e.readBatch, e.srcPk)
+		logger.Infof("getNextPk is %s", queryNextSql)
+		datas, _, _ = e.writer.Query(queryNextSql)
+	} else {
+		queryNextSql = fmt.Sprintf(baseQueryNextId, e.srcPk, e.srcPk, e.taskInfo.FromDb, e.taskInfo.FromTable, e.srcPk, start, e.readBatch, e.srcPk)
+		logger.Infof("getNextPk is %s", queryNextSql)
+		datas, _, _ = e.reader.Query(queryNextSql)
+	}
+	nextPk := datas[0]["end"]
+	//没有比start更大的
+	if nextPk == "NULL" {
+		return start, nil
+	}
+	end, err := strconv.Atoi(nextPk)
+	if err != nil {
+		return int64(0), err
+	}
+	return int64(end), nil
+
+}
+
+func (e *Executor) produceTaskParams(minId, maxId int64, srcEmpty bool) chan *TaskParams {
 	tasksChan := make(chan *TaskParams)
 	go func() {
 		defer func() {
 			close(tasksChan)
 		}()
 		for minId < maxId {
-			end := minId + int64(e.readBatch)
+			end, err := e.getNextPk(minId, srcEmpty)
+			if err != nil {
+				return
+			}
 			if end >= maxId {
 				end = maxId
 			}
@@ -522,10 +558,11 @@ func (e *Executor) Run() *Result {
 	//get minid maxId
 	var minId int64
 	var maxId int64
+	var srcEmpty bool
 	if e.syncer.mode == "init" {
-		minId, maxId, err = e.getMinMaxInit()
+		minId, maxId, err, srcEmpty = e.getMinMaxInit()
 	} else {
-		minId, maxId, err = e.getMinMaxIncrease()
+		minId, maxId, err, srcEmpty = e.getMinMaxIncrease()
 	}
 	if err != nil {
 		e.taskStatus = GETMINMAXERROR
@@ -536,7 +573,7 @@ func (e *Executor) Run() *Result {
 		}
 		return result
 	}
-	tasksChan := e.produceTaskParams(minId, maxId)
+	tasksChan := e.produceTaskParams(minId, maxId, srcEmpty)
 	resultsChan := make(chan *TaskResult)
 	dones := make(chan int, e.workerNum)
 	for i := 0; i < e.workerNum; i++ {

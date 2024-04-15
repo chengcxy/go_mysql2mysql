@@ -9,9 +9,28 @@
         "charset": "utf8",
         "MaxOpenConns":1,
         "MaxIdleConns":1
+      },
+      "hive_meta": {
+        "host": "TEST_DW_MYSQL_HIVE_HOST",
+        "user": "TEST_DW_MYSQL_HIVE_USER",
+        "password": "TEST_DW_MYSQL_HIVE_PASSWORD",
+        "db": "hive",
+        "port": 3306,
+        "charset": "utf8",
+        "MaxOpenConns":1,
+        "MaxIdleConns":1
       }
   },
   "from":{
+    "trino":{
+      "test_dw_dw":{
+        "host":"localhost",
+        "port":8082,
+        "user":"root",
+        "catalog":"hive",
+        "schema":"dw"
+      }
+    },
     "mysql":{
         "test_dw_z_pe":{
           "host": "TEST_ZPE_MYSQL_HOST",

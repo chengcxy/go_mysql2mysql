@@ -34,6 +34,8 @@ func GetSqlClient(clientType string, config *configor.Config, key string) (SqlCl
 	switch clientType {
 	case "mysql":
 		return NewMysqlClient(config, key)
+	case "trino":
+		return NewTrinoClient(config, key)
 	default:
 		return nil, errors.New("not support client type")
 	}

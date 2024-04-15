@@ -241,7 +241,12 @@ func (e *Executor) processSrcDatas(sql string) ([]map[string]string, []string, e
 
 //全量分段读取-分段写入
 func (e *Executor) executeInit(wid int, tp *TaskParams) *TaskResult {
-	sql := fmt.Sprintf(baseQuerySrcInit, e.taskInfo.FromDb, e.taskInfo.FromTable, e.srcPk, tp.start, e.srcPk, tp.end)
+	columns := make([]string,0)
+	for k,_ := range e.columnMapping{
+		columns = append(columns,k)
+	}
+	columnStr := strings.Join(columns,",")
+	sql := fmt.Sprintf(baseQuerySrcInit, columnStr,e.taskInfo.FromDb, e.taskInfo.FromTable, e.srcPk, tp.start, e.srcPk, tp.end)
 	logger.Infof("taskName:%s,wid:%d queryInitData sql:%s", e.taskName, wid, sql)
 	datas, columns, err := e.processSrcDatas(sql)
 	if err != nil {

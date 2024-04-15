@@ -35,7 +35,7 @@ from %s.%s
 `
 
 var baseQuerySrcInit = `
-select *
+select %s
 from %s.%s
 where %s>%d and %s<=%d
 `

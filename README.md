@@ -43,3 +43,18 @@ cd cmd
 #跑部分任务的增量 默认并发3个
 ./go_mysql2mysql -c ../config -e test -mode init -condition="id in(5,124)"
 ```
+
+
+# 部分日志
+```
+2024-04-15T17:44:51+08:00	INFO	syncer/executor.go:570	taskName:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase,wid:12,start-end(10895007,10900007],insertNum:0,updateNum:0,deleteNum:0,affectNum:0
+2024-04-15T17:44:51+08:00	INFO	syncer/executor.go:487	taskName:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase,wid:16 executeIncrease((10915007,10920007])
+2024-04-15T17:44:51+08:00	INFO	syncer/executor.go:547	taskname:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase worker:16 finished
+2024-04-15T17:44:51+08:00	INFO	syncer/executor.go:570	taskName:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase,wid:16,start-end(10915007,10920007],insertNum:0,updateNum:0,deleteNum:0,affectNum:0
+2024-04-15T17:44:51+08:00	INFO	syncer/executor.go:487	taskName:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase,wid:13 executeIncrease((10960007,10965007])
+2024-04-15T17:44:51+08:00	INFO	syncer/executor.go:547	taskname:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase worker:13 finished
+2024-04-15T17:44:51+08:00	INFO	syncer/executor.go:550	taskname:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase closed resultsChan
+2024-04-15T17:44:51+08:00	INFO	syncer/executor.go:570	taskName:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase,wid:13,start-end(10960007,10965007],insertNum:0,updateNum:0,deleteNum:0,affectNum:0
+2024-04-15T17:44:51+08:00	INFO	syncer/executor.go:573	taskName:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase finished,insertNum:0,updateNum:0,deleteNum:0,affectNum:0
+2024-04-15T17:44:51+08:00	INFO	syncer/syncer.go:123	results is &{taskName:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase taskStatus:5 insertNum:0 updateNum:0 deleteNum:0 affectNum:0 err:<nil>}
+```

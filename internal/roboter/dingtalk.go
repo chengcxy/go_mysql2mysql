@@ -88,7 +88,11 @@ func NewDingTalkRoboter(config *configor.Config) *DingTalkRoboter {
 	v, _ := config.Get("roboter")
 	rc := v.(map[string]interface{})
 	token := rc["token"].(string)
-	atMobiles := rc["atMobiles"].([]string)
+	mobiles := rc["atMobiles"].([]interface{})
+	atMobiles := make([]string, len(mobiles))
+	for index, v := range mobiles {
+		atMobiles[index] = v.(string)
+	}
 	hook_keyword := rc["hook_keyword"].(string)
 	isAtAll := rc["isAtAll"].(bool)
 	return &DingTalkRoboter{

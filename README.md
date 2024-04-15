@@ -89,3 +89,10 @@ cd cmd
 2024-04-15T17:44:51+08:00	INFO	syncer/executor.go:573	taskName:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase finished,insertNum:0,updateNum:0,deleteNum:0,affectNum:0
 2024-04-15T17:44:51+08:00	INFO	syncer/syncer.go:123	results is &{taskName:local_dw_mysql_blog_test->local_dw_mysql_blog_test2->increase taskStatus:5 insertNum:0 updateNum:0 deleteNum:0 affectNum:0 err:<nil>}
 ```
+
+
+### TODO
+```
+1.加上启动时间,结束时间,运行时长 程序结束后打印日志便于查看性能
+2.报警机制 钉钉和企业微信已经支持 代码还未合并引用
+```

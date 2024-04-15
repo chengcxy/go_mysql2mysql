@@ -21,7 +21,7 @@ func init() {
 	flag.StringVar(&Env, "e", "dev", "运行的环境-json文件前缀 dev/test/prod")
 	flag.StringVar(&Condition, "condition", " 1=1 ", "条件")
 	flag.StringVar(&Mode, "mode", "init", "模式全量还是增量")
-	flag.IntVar(&Concurrency,"concurrency",3,"并行同步几个任务")
+	flag.IntVar(&Concurrency, "concurrency", 3, "并行同步几个任务")
 	flag.Parse()
 	config, err = configor.NewConfig(ConfigPath, Env, true)
 	if err != nil {
@@ -48,7 +48,7 @@ func init() {
 }
 
 func main() {
-	s, err := syncer.NewSyncer(config, Condition, Mode,Concurrency)
+	s, err := syncer.NewSyncer(config, Condition, Mode, Concurrency)
 	if err != nil {
 		logger.Errorf("syncer.NewSyncer 初始化失败 %s", err)
 		panic(err)

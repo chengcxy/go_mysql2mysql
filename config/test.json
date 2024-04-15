@@ -94,11 +94,6 @@
         }
     }
   },
-  "trino": {
-    "z_pe": {
-      "url": "http://root@localhost:8082"
-    }
-  },
   "log": {
     "dev": true,
     "log_path": "../logs/",

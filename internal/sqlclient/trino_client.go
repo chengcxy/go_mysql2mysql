@@ -51,9 +51,7 @@ func NewTrinoClient(config *configor.Config, key string) (*TrinoClient, error) {
 
 
 
-//表的元数据信息 数据库名 表名 主键 最大值 最小值 切分的任务列表 所属的客户端
-
-//查询元数据
+//表的元数据信息 数据库名 表名 字段列表
 func (tc *TrinoClient) GetTableMeta(own_app, db_name, table_name string) (*TableMeta, error) {
 	rows_list, _, err := tc.metaClient.Query(QUERY_HIVE_TABLE_COLUMNS,db_name,table_name)
 	if err != nil {

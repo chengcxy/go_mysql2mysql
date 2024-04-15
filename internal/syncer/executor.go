@@ -576,7 +576,7 @@ func (e *Executor) Run() *Result {
 		}
 	}
 	msg := fmt.Sprintf("taskName:%s finished,insertNum:%d,updateNum:%d,deleteNum:%d,affectNum:%d", e.taskName, result.insertNum, result.updateNum, result.deleteNum, result.affectNum)
-	logger.Infof("%s",msg)
+	logger.Infof("%s", msg)
 	result.err = nil
 	result.taskStatus = SUCCESS
 	e.syncer.robot.SendMsg(msg)

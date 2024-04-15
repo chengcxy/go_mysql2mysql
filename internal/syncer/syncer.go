@@ -5,8 +5,8 @@ import (
 	"fmt"
 	configor "github.com/chengcxy/go_mysql2mysql/config"
 	"github.com/chengcxy/go_mysql2mysql/internal/logger"
-	"github.com/chengcxy/go_mysql2mysql/internal/sqlclient"
 	"github.com/chengcxy/go_mysql2mysql/internal/roboter"
+	"github.com/chengcxy/go_mysql2mysql/internal/sqlclient"
 )
 
 type Syncer struct {

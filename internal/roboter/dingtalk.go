@@ -1,16 +1,15 @@
-
 package roboter
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"strings"
+	configor "github.com/chengcxy/go_mysql2mysql/config"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
-	configor "github.com/chengcxy/go_mysql2mysql/config"
 )
 
 /*
@@ -30,81 +29,72 @@ import (
 //钉钉机器人post请求接口地址
 var DingTalkBaseApi = "https://oapi.dingtalk.com/robot/send?access_token=%s"
 
-type DingTalkRoboter struct{
-	Token string
-	AtMobiles []interface{}
+type DingTalkRoboter struct {
+	Token      string
+	AtMobiles  []string
 	Hookeyword string
-	IsAtall bool
+	IsAtall    bool
 }
 
-
-func (dt *DingTalkRoboter)SendMsg(params ...string)(string,error){
-	payload,err := dt.GetPayload(params...)
-	if err != nil{
-		log.Println("get dingtalk payload message error,",err)
-		return fmt.Sprintf("content:%s transfer bytes error",content),err
+func (dt *DingTalkRoboter) SendMsg(params ...string) (string, error) {
+	payload, err := dt.GetPayload(params...)
+	if err != nil {
+		log.Println("get dingtalk payload message error,", err)
+		return "DingTalkRoboter.SendMsg.GetPayload  bytes error", err
 	}
 	contentType := "application/json;charset=utf-8"
-	api := fmt.Sprintf(DingTalkBaseApi,dt.Token)
+	api := fmt.Sprintf(DingTalkBaseApi, dt.Token)
 	client := &http.Client{
 		Timeout: 15 * time.Second,
 	}
-    resp, err := client.Post(api, contentType, bytes.NewBuffer(payload))
-    if err != nil {
-        return "send dingtalk msg err",err
-    }
-    defer resp.Body.Close()
+	resp, err := client.Post(api, contentType, bytes.NewBuffer(payload))
+	if err != nil {
+		return "send dingtalk msg err", err
+	}
+	defer resp.Body.Close()
 	result, err := ioutil.ReadAll(resp.Body)
-    return string(result),err
-
+	return string(result), err
 
 }
 
 //params(context,mobile string)
-func (dt *DingTalkRoboter)resolveParams(params []string) (string,[]string) {
+func (dt *DingTalkRoboter) resolveParams(params []string) (string, []string) {
 	switch len(params) {
 	case 1:
-		return params[0],dt.AtMobiles
+		return params[0], dt.AtMobiles
 	case 2:
-		return params[0],strings.Split(params[1],",")
+		return params[0], strings.Split(params[1], ",")
 	default:
 		panic(" DingTalkRoboter.parameters.length not in (1,2)")
 	}
 }
 
-func (dt *DingTalkRoboter)GetPayload(params ...string)([]byte,error){
+func (dt *DingTalkRoboter) GetPayload(params ...string) ([]byte, error) {
 	data := make(map[string]interface{})
-	content,atMobiles := dt.resolveParams(params)
+	content, atMobiles := dt.resolveParams(params)
 	data["msgtype"] = "text"
 	at := make(map[string]interface{})
 	at["atMobiles"] = atMobiles
 	at["isAtAll"] = dt.IsAtall
 	data["at"] = at
 	text := make(map[string]string)
-	text["content"] = fmt.Sprintf("%s:%s",dt.Hookeyword,content)
+	text["content"] = fmt.Sprintf("%s:%s", dt.Hookeyword, content)
 	data["text"] = text
 	return json.Marshal(data)
 
 }
 
-
-
-func NewDingTalkRoboter(config *configor.Config) *DingTalkRoboter{
-	v,ok := config.Get("roboter")
-	if !ok {
-		panic("roboter key is not in json config_file")
-	}
+func NewDingTalkRoboter(config *configor.Config) *DingTalkRoboter {
+	v, _ := config.Get("roboter")
 	rc := v.(map[string]interface{})
 	token := rc["token"].(string)
-	atMobiles := rc["atMobiles"].([]interface{})
+	atMobiles := rc["atMobiles"].([]string)
 	hook_keyword := rc["hook_keyword"].(string)
 	isAtAll := rc["isAtAll"].(bool)
 	return &DingTalkRoboter{
-		Token:token,
-		AtMobiles:atMobiles,
-		Hookeyword:hook_keyword,
-		IsAtall:isAtAll,
+		Token:      token,
+		AtMobiles:  atMobiles,
+		Hookeyword: hook_keyword,
+		IsAtall:    isAtAll,
 	}
 }
-
-

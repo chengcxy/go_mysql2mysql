@@ -58,7 +58,7 @@ where %s in ($where)
 `
 
 var baseQueryNextId = `
-select a.%s as end
+select a.%s as endPk
 from (
 	select %s
 	from %s.%s

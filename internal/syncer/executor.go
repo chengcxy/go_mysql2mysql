@@ -214,7 +214,7 @@ func (e *Executor) getNextPk(start int64, srcEmpty bool) (int64, error) {
 		logger.Infof("getNextPk is %s", queryNextSql)
 		datas, _, _ = e.reader.Query(queryNextSql)
 	}
-	nextPk := datas[0]["end"]
+	nextPk := datas[0]["endPk"]
 	//没有比start更大的
 	if nextPk == "NULL" {
 		return start, nil

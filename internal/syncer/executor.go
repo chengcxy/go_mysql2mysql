@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/chengcxy/go_mysql2mysql/internal/logger"
-	"github.com/chengcxy/go_mysql2mysql/internal/sqlclient"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/chengcxy/go_mysql2mysql/internal/logger"
+	"github.com/chengcxy/go_mysql2mysql/internal/sqlclient"
 )
 
 var lock sync.Mutex
@@ -214,7 +215,7 @@ func (e *Executor) getNextPk(start int64, srcEmpty bool) (int64, error) {
 		logger.Infof("getNextPk is %s", queryNextSql)
 		datas, _, _ = e.reader.Query(queryNextSql)
 	}
-	nextPk := datas[0]["endPk"]
+	nextPk := datas[0]["endpk"]
 	//没有比start更大的
 	if nextPk == "NULL" {
 		return start, nil
@@ -235,6 +236,7 @@ func (e *Executor) produceTaskParams(minId, maxId int64, srcEmpty bool) chan *Ta
 		}()
 		for minId < maxId {
 			end, err := e.getNextPk(minId, srcEmpty)
+			logger.Infof("next pk is %d", end)
 			if err != nil {
 				return
 			}
@@ -305,7 +307,7 @@ func (e *Executor) executeInit(wid int, tp *TaskParams) *TaskResult {
 		insertNum: insertNum,
 		err:       err,
 	}
-	logger.Infof("taskName:%s,wid:%d executeInit((%d,%d])", e.taskName, wid, tp.start, tp.end)
+	logger.Infof("taskName:%s,wid:%d executeInit((%d,%d]) error is %+v ", e.taskName, wid, tp.start, tp.end, err)
 	return r
 }
 
@@ -599,6 +601,8 @@ func (e *Executor) Run() *Result {
 		affectNum: int64(0),
 	}
 	for r := range resultsChan {
+		logger.Infof("taskName:%s,each result:%+v", e.taskName, r)
+
 		if r.err != nil {
 			result.err = err
 			result.taskStatus = FAILED

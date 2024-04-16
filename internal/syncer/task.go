@@ -70,7 +70,7 @@ limit 1
 `
 
 //任务状态
-var (
+const (
 	PARSEPARAMSERROR = 1
 	GETMINMAXERROR   = 2
 	RUNNING          = 3

@@ -44,14 +44,14 @@ VALUES
 ```
 cd cmd
 
-#跑全部任务的全量 目标表为空表 未保证数据安全,写入不执行truncate操作
+#跑全部任务的全量 目标表为空表 为保证数据安全,写入不执行truncate操作
 ./go_mysql2mysql -c ../config -e test -mode init
 
 #跑全部任务的增量 目标表不为空表自动做数据库的增删 把update改为先删除后批量插入以提升性能
 ./go_mysql2mysql -c ../config -e test -mode increase
 
 
-#跑全部任务的全量 目标表为空表 未保证数据安全,写入不执行truncate操作 控制并发数加上-concurrency 参数 100个任务同一时刻起3个任务
+#跑全部任务的全量 目标表为空表 为保证数据安全,写入不执行truncate操作 控制并发数加上-concurrency 参数 100个任务同一时刻起3个任务
 ./go_mysql2mysql -c ../config -e test -mode init -concurrency 3
 
 #跑全部任务的增量 目标表不为空表自动做数据库的增删 把update改为先删除后批量插入以提升性能 控制并发数加上-concurrency 参数 100个任务同一时刻起3个任务
